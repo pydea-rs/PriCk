@@ -8,4 +8,4 @@
 <br><br><br>
 <h2>TODO: </h2>
 <hr>
-<p>* &nbsp;&nbsp;&nbsp;Checkout: https://github.com/pydea-rs/PriceStealer/TODO.md
+<p>* &nbsp;&nbsp;&nbsp;<a href="https://github.com/pydea-rs/PriceStealer/blob/master/TODO.md">Objectives</a></p>
