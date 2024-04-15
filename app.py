@@ -27,7 +27,7 @@ class PriceStealer:
         self.digit_separator = ','
         self.parent_html_tag = parent_html_tag
         self.price_key = price_key
-        self.price_pattern, self.pattern_left_hand, self.pattern_right_hand = IrarzStealer.GetPattern(self.price_key, self.parent_html_tag)
+        self.price_pattern, self.pattern_left_hand, self.pattern_right_hand = PriceStealer.GetPattern(self.price_key, self.parent_html_tag)
         self.url: str = f'https://{url}' if 'https://' not in url else url
 
     def get_index(self) -> str:
