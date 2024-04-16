@@ -1,0 +1,10 @@
+{
+    "bot_msg1": "message 1",
+    "bot_msg2": "message 2",
+    "commands": {
+        "cmd1": "cmd1 -> these are the commands of the bot which trigger a command handler"
+    },
+    "keywords": {
+        "keyword1" :"these are the text of bot button texts, that trigger a message handler"
+    }
+}
