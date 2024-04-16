@@ -1,10 +1,17 @@
 import re
 from typing import Dict, List
+import persiantools.digits as persian_digits
 import requests
 import aiohttp
 import asyncio
 from time import sleep
+import api
 
+
+async def GET(url: str, timeout: int = 10):
+    async with aiohttp.ClientSession(trust_env=True, timeout=aiohttp.ClientTimeout(timeout)) as session:
+        async with session.get(url) as response:
+            return await response.json()
 
 class PriceStealer:
     '''This class will get the index page of Irarz.com and extract the USD price in tomans from it. It also can extract other prices by providing the right pattern details.'''
@@ -14,7 +21,11 @@ class PriceStealer:
         for match in re.findall(self.price_pattern, html):
             price_fa = match.replace(self.pattern_left_hand, '').replace(self.pattern_right_hand, '')
             price = price_fa.replace(self.digit_separator, '')
-            results.append({'fa': price_fa, 'value': price})
+            try:
+                price = float(persian_digits.fa_to_en(price))
+            except:
+                pass
+            results.append({'fa': price_fa, 'value': price, 'en': f'{price:,}'})
 
         return results
 
@@ -36,14 +47,13 @@ class PriceStealer:
         
     def get_index_sync(self) -> str:
         html = requests.get(self.url)
-        # TODO: use async here
         return html.text
     
     async def get_index(self):
-        async with aiohttp.ClientSession(trust_env=True, timeout=aiohttp.ClientTimeout(self.timeout)) as session:
-            async with session.get(self.url) as response:
-                return await response.text()
-            
+        req = api.Request(self.url)
+        res = await req.do()
+        return res.value
+    
     async def get_all(self) -> List[Dict[str, str|float|int]]:
         html = await self.get_index()
         result = self.extract_price(html)
