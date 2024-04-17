@@ -9,6 +9,8 @@ from tools.planner import Planner
 from tools.exceptions import *
 from flask import Flask, request, jsonify
 from payagraph.tools import ParallelJob
+from api.api_async import Request, Response
+
 
 
 class TelegramBotCore:
@@ -18,17 +20,19 @@ class TelegramBotCore:
         self.bot_api_url = f"https://api.telegram.org/bot{self.token}"
         self.host_url = host_url
 
-    def send(self, message: GenericMessage, keyboard: Keyboard|InlineKeyboard = None):
+    async def send(self, message: GenericMessage, keyboard: Keyboard|InlineKeyboard = None):
         '''Calls the Telegram send message api.'''
         url = f"{self.bot_api_url}/sendMessage"
         chat_id = message.chat_id # message.by.chat_id
         payload = {'chat_id': chat_id, 'text': message.text}
         if keyboard:
             keyboard.attach_to(payload)
-        response = requests.post(url, json=payload)
-        return response  # as dict
+        # return requests.post(url, json=payload)
+        req = Request(url, payload)
+        res = await req.post()
+        return res.value
 
-    def edit(self, modified_message: GenericMessage, keyboard: InlineKeyboard):
+    async def edit(self, modified_message: GenericMessage, keyboard: InlineKeyboard):
         '''Edits a message on telegram. it will be called by .handle function when GenericMessage.replace_on_previous is True [text, photo, whatever]'''
         url = f"{self.bot_api_url}/editMessageText"
         chat_id = modified_message.chat_id # message.by.chat_id
@@ -38,10 +42,12 @@ class TelegramBotCore:
                 raise InvalidKeyboardException('Only InlineKeyboard is allowed when editting a message.')
             keyboard.attach_to(payload)
 
-        response = requests.post(url, json=payload)
-        return response  # as dict
+        # return requests.post(url, json=payload)
+        req = Request(url, payload)
+        res = await req.post()
+        return res.value
 
-    def answer_callback_query(self, callback_query_id: int, text: str, show_alert: bool = False, cache_time_sec: int = None, url_to_be_opened: str = None):
+    async def answer_callback_query(self, callback_query_id: int, text: str, show_alert: bool = False, cache_time_sec: int = None, url_to_be_opened: str = None):
         '''Shows a toast or popup when dealing whit callback queries. If the callback query message menu is not editted its better to call this method.'''
         url = f"{self.bot_api_url}/answerCallbackQuery"
         payload = {'callback_query_id': callback_query_id, 'text': text, 'show_alert': show_alert}
@@ -52,9 +58,10 @@ class TelegramBotCore:
         if url_to_be_opened:
             payload['url'] = url_to_be_opened
 
-        response = requests.post(url, json=payload)
-        return response
-
+        # return requests.post(url, json=payload)
+        req = Request(url, payload)
+        res = await req.post()
+        return res.value
 
 
 class TelegramBot(TelegramBotCore):
@@ -90,21 +97,9 @@ class TelegramBot(TelegramBotCore):
     def config_webhook(self, webhook_path = '/'):
         # **Telegram hook route**
         @self.app.route(webhook_path, methods=['POST'])
-        def main():
-            # code below must be add to middlewares
-            '''if not user.has_vip_privileges():
-                order = Order(buyer=user, months_counts=2)  # change this
-                gateway = NowpaymentsGateway(buyer_chat_id=message.chat_id, order=order, callback_url=f'{bot.host_url}/verify', on_success_url=bot.get_telegram_link())
-                response = GenericMessage.Text(message.chat_id, text=gateway.get_payment_link())
-                bot.send(message=response)
-
-                ### TEMP
-                hint = GenericMessage.Text(target_chat_id=user.chat_id, text=bot.text("select_channel", user.language))
-                bot.send(hint)
-                user.change_state(UserStates.SELECT_CHANNEL)
-
-                 return jsonify({'status': 'ok'})'''
-            self.handle(request.json)
+        async def main():
+            res = await self.handle(request.json)
+            print(res)
             return jsonify({'status': 'ok'})
 
     def go(self, debug=True):
@@ -201,7 +196,7 @@ class TelegramBot(TelegramBotCore):
         self.add_parallel_job(job)
         return job.go()
 
-    def handle(self, telegram_data: dict):
+    async def handle(self, telegram_data: dict):
         '''determine what course of action to take based on the message sent to the bot by user. First command/message/state handler and middlewares and then call the handle with telegram request data.'''
         message: GenericMessage | TelegramCallbackQuery = None
         user: User = None
@@ -237,9 +232,11 @@ class TelegramBot(TelegramBotCore):
             response = GenericMessage.Text(target_chat_id=user.chat_id, text=self.text("wrong_command", user.language))
 
         # if message != response or ((keyboard) and not isinstance(keyboard, InlineKeyboard)):
+        telegram_method_response: dict|str|None = None
         if not response.replace_on_previous or ((keyboard) and not isinstance(keyboard, InlineKeyboard)):
             if not keyboard and not dont_use_main_keyboard:
                 keyboard = self.main_keyboard(user.language)
-            self.send(message=response, keyboard=keyboard)
+            telegram_method_response = await self.send(message=response, keyboard=keyboard)
         else:
-            self.edit(message, keyboard)
+            telegram_method_response = await self.edit(message, keyboard)
+        return telegram_method_response

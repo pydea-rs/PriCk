@@ -30,10 +30,6 @@ def some_message_handler(bot: TelegramBot, message: GenericMessage) -> Union[Gen
 def some_state_handler(bot: TelegramBot, state: UserStates) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
     '''TODO: Write your state handler. For each state of the user defined in UserStates enum, you must define a handler.'''
 
-def some_inline_query_handler(bot: TelegramBot, callback_query: TelegramCallbackQuery)-> Union[GenericMessage, Keyboard|InlineKeyboard]:
-    '''TODO: Write your inline query handler. handlers are categorized by action values of the query (inline keyboards must be grouped by special action values)
-    You must write a handler for each single action value used in the bot.'''
-
 
 # Parallel Jovbs:
 async def send_usd_price_job(bot: TelegramBot)-> Union[GenericMessage, Keyboard|InlineKeyboard]:
@@ -61,4 +57,4 @@ def something():
     return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
-    bot.go(debug=False)  # Run the Flask app
+    bot.go(debug=False)

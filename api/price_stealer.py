@@ -2,10 +2,9 @@ import re
 from typing import Dict, List
 import persiantools.digits as persian_digits
 import requests
-import aiohttp
 import asyncio
 from time import sleep
-import api_async as api
+import api.api_async as api
 
 
 class PriceStealer:
@@ -27,6 +26,7 @@ class PriceStealer:
 
     @staticmethod
     def GetPattern(price_key: str, parent_html_tag: str) -> str:
+        # TODO: GET A PATTERN THAT IS independent to tag type
         left = f'<{parent_html_tag} id="{price_key}">'
         right = f'</{parent_html_tag}>'
         return f'{left}.*?{right}', left, right
@@ -59,15 +59,25 @@ class PriceStealer:
     async def get(self) -> Dict[str, str|int|float]:
         return await self.get_all()[0]
 
-async def run():
-    while True:
-        try:
-            usd_stealer = PriceStealer()
-            print(await usd_stealer.get_all())
-            sleep(10)
-        except:
-            pass
+    async def list_currency_ids(self):
+        '''Search though code and find all possible ids'''
+        # TODO: write this methid 
+        pass
+
     
-if __name__ == '__main__':
+def run_async(method):
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
+    loop.run_until_complete(method())
+    loop.close()
+
+
+if __name__ == '__main__':
+    async def run():
+        while True:
+            try:
+                usd_stealer = PriceStealer()
+                print(await usd_stealer.get_all())
+                sleep(10)
+            except:
+                pass
+    run_async(run)
