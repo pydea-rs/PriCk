@@ -7,7 +7,7 @@ from time import sleep
 import api.api_async as api
 
 
-class PriceStealer:
+class PriceSeek:
     '''This class will get the index page of Irarz.com and extract the USD price in tomans from it. It also can extract other prices by providing the right pattern details.'''
     
     def extract_price(self, html: str) -> List[Dict[str, str|float|int]]:
@@ -36,7 +36,7 @@ class PriceStealer:
         self.digit_separator = ','
         self.parent_html_tag = parent_html_tag
         self.price_key = price_key
-        self.price_pattern, self.pattern_left_hand, self.pattern_right_hand = PriceStealer.GetPattern(self.price_key, self.parent_html_tag)
+        self.price_pattern, self.pattern_left_hand, self.pattern_right_hand = PriceSeek.GetPattern(self.price_key, self.parent_html_tag)
         self.url: str = f'https://{url}' if 'https://' not in url else url
         self.timeout: timeout = timeout
         
@@ -75,8 +75,8 @@ if __name__ == '__main__':
     async def run():
         while True:
             try:
-                usd_stealer = PriceStealer()
-                print(await usd_stealer.get_all())
+                usd_seeker = PriceSeek()
+                print(await usd_seeker.get_all())
                 sleep(10)
             except:
                 pass

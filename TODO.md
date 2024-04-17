@@ -1,19 +1,7 @@
-# Write Readme.md
-    Write a propper readme.md file
 
-# Implement all Telegram api methods.
-    * For now just some basic methods are implemented. need to implement others. Methods written up until now:
-        1. sendMessage
-        2. editMessageText
-        3. answerCallbackQuery
-
-    * Main methods that are required in any bot:
-        1. sendPhoto
-        2. sendDocument
-        3. sendVideo
-        4. sendAudio (or sendMusic?)
-        5. sendVoice
-        6. getChatMember
-        7. sendChatAction [?]
-        8. etc
-        
+<h2>TODO: </h2>
+<hr>
+<p>* &nbsp;&nbsp;&nbsp;Add an option to find the data WITHOUT specifying any parent html tag.</p>
+<p>* &nbsp;&nbsp;&nbsp;Design a telegram bot [using my Payagraph python package], that will get the price and send the data to the user by a specified interval.</p>
+<p>* &nbsp;&nbsp;&nbsp;Convert persian digits to english digits to retrieve the actual numerical value of the price..</p>
+<p>* &nbsp;&nbsp;&nbsp;Replace all public fields inside class methds with private __ fields..</p>

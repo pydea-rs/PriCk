@@ -5,6 +5,17 @@
         "cmd1": "cmd1 -> these are the commands of the bot which trigger a command handler"
     },
     "keywords": {
-        "keyword1" :"these are the text of bot button texts, that trigger a message handler"
+        "SubscribeChanges": {
+            "fa": "دنبال کردن تغییرات",
+            "en": "Subscribe for Changes"
+        },
+        "SubscribeByInterval": {
+            "fa": "عضویت پیام دوره ای",
+            "en": "Subscribe For Schedule Messages"
+        }
+    },
+    "wrong_command": {
+        "fa": "چه کاری از دستم بر میاد؟",
+        "em": "What can I do for you?"
     }
 }
