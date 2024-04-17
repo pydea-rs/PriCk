@@ -19,8 +19,21 @@ class USDCKBot(TelegramBot):
         super().__init__(token, username, host_url, text_resources, _main_keyboard)
         self.__changers: Dict[int, str] = []
         self.__intervallers : Dict[int, str]= []
-        self.__prev_seek = []
-        
+        self.__prev_prices = []
+        self.__seeker = PriceSeek()
+        self.seek = self.__seeker.get_all
+        self.to_string = lambda prices: "\n".join([str(price) for price in prices])
+
+    def has_price_changed(self, prices) -> bool:
+        try:
+            if self.__prev_prices[0]['value'] != prices[0]['value']:
+                self.__prev_prices = prices
+                return True
+        except:
+            self.__prev_prices = prices
+            return True
+        return False
+    
     def update_change_subscribers(self, chat_id: int):
         if chat_id not in self.__changers:
             self.__changers[chat_id] = "usd"
@@ -32,7 +45,25 @@ class USDCKBot(TelegramBot):
             self.__intervallers[chat_id] = "usd"
             return
         del self.__intervallers[chat_id]
-        
+
+    def subscribers(self) -> list[int]:
+        return list(self.__intervallers.keys()).extend(list(self.__changers.keys()))
+
+    async def seek_to_string(self) -> str:
+        prices = await self.seek()
+        return self.to_string(prices)
+                            
+    async def send_to_all(self):
+        prices = await self.seek_to_string()
+        for chat_id in self.subscribers():
+            await self.send(GenericMessage(chat_id, prices))
+        return prices
+    async def send_price_to_changers(self):
+        prices = self.to_string(self.__prev_prices)
+
+        for chat_id in self.__changers:
+            await self.send(GenericMessage.Text(chat_id, prices))
+
     @property
     def intervallers(self):
         return self.__intervallers
@@ -78,20 +109,24 @@ async def send_usd_price_job(bot: USDCKBot)-> Union[GenericMessage, Keyboard|Inl
     '''Parallel jobs are optional methods that will run by an special interval simultaniouesly with users requests.'''
     usd_seeker = PriceSeek()
     prices = await usd_seeker.get_all()
-    textmsg = "\n".join([str(d) for d in prices])
+    textmsg = bot.to_string(prices)
     for chat_id in bot.intervallers:
         await bot.send(GenericMessage.Text(chat_id, textmsg))
- 
+    if bot.has_price_changed(prices):
+        await bot.send_price_to_changers()
+    return prices
+
 job = bot.prepare_new_parallel_job(1, send_usd_price_job, bot)
 
-async def send_new_price(bot: USDCKBot)
 bot.start_clock()  # optional, but mandatory if you defined at least one parallel job. also if you want to calculate bot uptime.
 bot.config_webhook()  # automatically writes the webhook path route handler, so that users messages(requests), all be passed to bot.handle method
 
-@bot.app.route('/other_routes', methods=['POST'])
-def something():
-    '''Special route handler. optional. used for some special purposes, for example if your bot uses payment gateways, you must define payment callback route this way.'''
-    return jsonify({'status': 'ok'})
+@bot.app.route('/fire', methods=['GET'])
+async def fire():
+    '''Bypass schedular and send prices to all subscribers'''
+    prices = await bot.send_to_all(bot)
+    return jsonify({'status': 'ok', 'prices': prices})
+
 
 if __name__ == '__main__':
     bot.go(debug=False)
