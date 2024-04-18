@@ -80,9 +80,9 @@ class PriCKerBot(TelegramBot):
 
     def main_keyboard(self, user: User = None) -> Keyboard:
         '''Get the keyboard that must be shown in most cases and on Start screen.'''
-        return Keyboard(text_resources["keywords"][("un" if user.is_changer else "") + "subscribe_changes"][user.language],
-                        text_resources["keywords"][("un" if user.is_intervaller else "") + "subscribe_by_interval"][user.language],
-                        text_resources["keywords"]["change_language"][user.language])
+        return Keyboard(self.text_resources["keywords"][("un" if user.is_changer else "") + "subscribe_changes"][user.language],
+                        self.text_resources["keywords"][("un" if user.is_intervaller else "") + "subscribe_by_interval"][user.language],
+                        self.text_resources["keywords"]["change_language"][user.language])
     
     @property
     def intervallers(self):
