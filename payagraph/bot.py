@@ -229,7 +229,7 @@ class TelegramBot(TelegramBotCore):
                         handler = self.message_handlers[message.text]
                         response, keyboard = handler(self, message)
         if not response:
-            response = GenericMessage.Text(target_chat_id=user.chat_id, text=self.text("wrong_command", user.language))
+            response = GenericMessage.Text(target_chat_id=user.chat_id, text=self.text("default_message", user.language))
 
         # if message != response or ((keyboard) and not isinstance(keyboard, InlineKeyboard)):
         telegram_method_response: dict|str|None = None

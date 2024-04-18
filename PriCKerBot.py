@@ -5,7 +5,6 @@ from payagraph.keyboards import *
 from payagraph.keyboards import Keyboard
 from payagraph.tools import *
 from decouple import config
-from models.user import UserStates, Channel
 from tools import manuwriter
 from typing import Dict, Union
 from tools.exceptions import *
@@ -13,7 +12,7 @@ from api.price_seek import PriceSeek
 from typing import Dict
 
 
-class USDCKBot(TelegramBot):
+class PriCKerBot(TelegramBot):
     
     def __init__(self, token: str, username: str, host_url: str, text_resources: dict, _main_keyboard: Dict[str, Keyboard] | Keyboard = None) -> None:
         super().__init__(token, username, host_url, text_resources, _main_keyboard)
@@ -87,25 +86,25 @@ BOT_USERNAME = config('BOT_USERNAME')
 # Also you can write your texts by hard coding but it will be hard implementing multilanguage texts that way,
 text_resources = manuwriter.load_json('texts', 'resources')
 
-def subscribe_changes_job(bot: USDCKBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
+def subscribe_changes_job(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
     bot.update_change_subscribers(chat_id=message.chat_id)
 
-def subscribe_by_interval_job(bot: USDCKBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
+def subscribe_by_interval_job(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
     bot.update_interval_subscribers(chat_id=message.chat_id)
 
    
 main_keyboard = {
-    'en': Keyboard(text_resources["keywords"]["some_message"]["en"]),
-    'fa': Keyboard(text_resources["keywords"]["some_message"]["fa"])
+    'en': Keyboard(text_resources["keywords"]["SubscribeChanges"]["en"], text_resources["keywords"]["SubscribeByInterval"]["en"]),
+    'fa': Keyboard(text_resources["keywords"]["SubscribeChanges"]["fa"], text_resources["keywords"]["SubscribeByInterval"]["fa"])
 }
 
-bot = USDCKBot(token=BOT_TOKEN, username=BOT_USERNAME, host_url=HOST_URL, text_resources=text_resources, _main_keyboard=main_keyboard)
+bot = PriCKerBot(token=BOT_TOKEN, username=BOT_USERNAME, host_url=HOST_URL, text_resources=text_resources, _main_keyboard=main_keyboard)
 bot.add_message_handler(message=bot.keyword('SubscribeChanges'), handler=subscribe_changes_job)
 bot.add_message_handler(message=bot.keyword('SubscribeByInterval'), handler=subscribe_by_interval_job)
 
 bot.add_command_handler(command='uptime', handler=lambda bot, message: (GenericMessage.Text(message.by.chat_id, bot.get_uptime()), None))
 # Parallel Jovbs:
-async def send_usd_price_job(bot: USDCKBot)-> Union[GenericMessage, Keyboard|InlineKeyboard]:
+async def send_usd_price_job(bot: PriCKerBot)-> Union[GenericMessage, Keyboard|InlineKeyboard]:
     '''Parallel jobs are optional methods that will run by an special interval simultaniouesly with users requests.'''
     usd_seeker = PriceSeek()
     prices = await usd_seeker.get_all()

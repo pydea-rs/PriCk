@@ -1,9 +1,4 @@
 {
-    "bot_msg1": "message 1",
-    "bot_msg2": "message 2",
-    "commands": {
-        "cmd1": "cmd1 -> these are the commands of the bot which trigger a command handler"
-    },
     "keywords": {
         "SubscribeChanges": {
             "fa": "دنبال کردن تغییرات",
@@ -14,7 +9,7 @@
             "en": "Subscribe For Schedule Messages"
         }
     },
-    "wrong_command": {
+    "default_message": {
         "fa": "چه کاری از دستم بر میاد؟",
         "em": "What can I do for you?"
     }

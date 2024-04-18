@@ -28,10 +28,6 @@ class DatabaseInterfaceBase:
                 # create table user
                 cursor.execute(query)
                 manuwriter.log(f"{DatabaseInterfaceBase.TABLE_USERS} table created successfuly.", category_name='info')
-
-            # else: # TEMP-*****
-            #     cursor.execute(f'ALTER TABLE {DatabaseInterfaceBase.TABLE_USERS} ADD {DatabaseInterfaceBase.USER_LAST_INTERACTION} DATE')
-            #     connection.commit()
             manuwriter.log("Database setup completed.", category_name='info')
             cursor.close()
             connection.close()

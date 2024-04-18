@@ -10,6 +10,10 @@ class DatabaseInterface(DatabaseInterfaceBase):
             DatabaseInterface._instance = DatabaseInterface()
         return DatabaseInterface._instance
 
+    def save_subscribers(self):
+        pass
+
     def setup(self):
-        '''Write the overriding version'''
-    # continue
+        super().setup()
+
+        # Add subscribers table
