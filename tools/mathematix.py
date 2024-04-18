@@ -66,17 +66,22 @@ def cut_and_separate(num: float|int):
 def tz_today() -> datetime:  # today date in a specific timezone
     return datetime.now(tz=timezone)
 
-WEEKDAYS = ('دوشنبه', 'سه شنبه', 'چهارشنبه', 'پنج شنبه', 'جمعه', 'شنبه', 'یکشنبه')
+WEEKDAYS = {'fa': ('دوشنبه', 'سه شنبه', 'چهارشنبه', 'پنج شنبه', 'جمعه', 'شنبه', 'یکشنبه'),
+            "en": ('Monday', "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")}
 
-def timestamp() -> str:
+def timestamp(language: str) -> str:
     # today date and time as persian
     try:
         now = tz_today()  # timezone.localize(datetime.now())
-        year, month, day = gregorian_to_jalali(now.year, now.month, now.day)
-        weekday = WEEKDAYS[now.weekday()]
-        date = digits.en_to_fa(f'{year}/{month:02d}/{day:02d}')
-        time = digits.en_to_fa(now.strftime("%H:%M"))
-        return f'📆 {date} {weekday} {time}'
+        weekday = WEEKDAYS[language][now.weekday()]
+        
+        if language.lower() == 'fa':
+            year, month, day = gregorian_to_jalali(now.year, now.month, now.day)
+            date = digits.en_to_fa(f'{year}/{month:02d}/{day:02d}')
+            time = digits.en_to_fa(now.strftime("%H:%M"))
+            return f'📆 {date} {weekday} {time}'
+
+        return f'📆 {now.year}/{now.month:02d}/{now.day:02d} {weekday} {now.strftime("%H:%M")}'
 
     except Exception as ex:
         print('Calculating jalili date and time encountered with error: ', ex)

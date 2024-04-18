@@ -10,6 +10,7 @@ from typing import Dict, Union
 from tools.exceptions import *
 from api.price_seek import PriceSeek
 from typing import Dict
+from tools.mathematix import timestamp
 
 
 class PriCKerBot(TelegramBot):
@@ -67,16 +68,15 @@ class PriCKerBot(TelegramBot):
     async def send_to_all(self):
         prices = await self.seek_to_string()
         subscribers = self.subscribers()
-        print(subscribers)
         for chat_id in subscribers:
             await self.send(GenericMessage.Text(chat_id, prices))
         return prices
     
     async def send_price_to_changers(self):
-        prices = self.to_string(self.__current_prices)
-
         for chat_id in self.__changers:
-            await self.send(GenericMessage.Text(chat_id, prices))
+            user = User.Get(chat_id, no_cache=True)
+            textmsg = (bot.text("price_is", user.language) % (bot.current_prices[0][user.language])) + "\n\n" + timestamp(user.language)
+            await self.send(GenericMessage.Text(chat_id, textmsg))
 
     def main_keyboard(self, user: User = None) -> Keyboard:
         '''Get the keyboard that must be shown in most cases and on Start screen.'''
@@ -149,13 +149,24 @@ async def check_prices(bot: PriCKerBot):
 # Parallel Jovbs:
 async def send_usd_price_job(bot: PriCKerBot):
     '''Job for sending price fto intervallers every 5 minutes.'''
-    textmsg = bot.to_string(bot.current_prices)
     for chat_id in bot.intervallers:
-        await bot.send(GenericMessage.Text(chat_id, textmsg))
+        user = User.Get(chat_id)
+        textmsg = (bot.text("price_is", user.language) % (bot.current_prices[0][user.language])) + "\n\n" + timestamp(user.language)
+        message = GenericMessage.Text(chat_id, textmsg)
+        response = None
+        if not user.previous_message_id:
+            message.text += f"\n- - - - - - - - - - - - - - - - - - - - -\n{bot.text('follow_this_message', user.language)}"
+            response = await bot.send(message)
+        else:
+            message.id = user.previous_message_id
+            response = await bot.edit(message)
+        user.previous_message_id = response['result']['message_id']
 
     return bot.current_prices
 
-job = bot.prepare_new_parallel_job(10, send_usd_price_job, bot)
+job = bot.prepare_new_parallel_job(1, check_prices, bot)
+
+job = bot.prepare_new_parallel_job(1, send_usd_price_job, bot)
 
 bot.load_subscribers()
 bot.start_clock()  # optional, but mandatory if you defined at least one parallel job. also if you want to calculate bot uptime.

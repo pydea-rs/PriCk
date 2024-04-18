@@ -25,6 +25,10 @@
         "fa": "چه کاری از دستم بر میاد؟",
         "en": "What can I do for you?"
     },
+    "price_is": {
+        "fa": "قیمت لحظه ای دلار:‌ %s",
+        "en": "Instant USD Price: %s"
+    },
     "subscribed_as_changer": {
         "fa": "از این پس شما از تغییرات قیمت دلار در اسرع وقت مطلع خواهید شد.",
         "en": "From now on, you will be notified the moment USD price has changed."
@@ -40,5 +44,9 @@
     "unsubscribed_as_intervaller": {
         "fa": "اکانت شما با موفقیت از لیست زمان بندی ده دقیقه ای دریافت قیمت دلار حذف شد.",
         "en": "You've successfully unsubscribed from receiving USD price every 10 minutes."
+    },
+    "follow_this_message": {
+        "en": "From now on, this message will be updated every 10 minutes with the latest USD price.",
+        "fa": "از این پس این پیام هر ده دقیقه با آخرین قیمت دلار به روز رسانی می شود."
     }
 }

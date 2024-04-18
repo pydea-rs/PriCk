@@ -32,7 +32,7 @@ class TelegramBotCore:
         res = await req.post()
         return res.value
 
-    async def edit(self, modified_message: GenericMessage, keyboard: InlineKeyboard):
+    async def edit(self, modified_message: GenericMessage, keyboard: InlineKeyboard = None):
         '''Edits a message on telegram. it will be called by .handle function when GenericMessage.replace_on_previous is True [text, photo, whatever]'''
         url = f"{self.bot_api_url}/editMessageText"
         chat_id = modified_message.chat_id # message.by.chat_id

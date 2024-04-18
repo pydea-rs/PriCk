@@ -40,11 +40,11 @@ class User:
             del User.Instances[g]
 
     @staticmethod
-    def ExtractQueryData(row: list):
-        return User(row[0], bool(row[1]), bool(row[2]), row[3])
+    def ExtractQueryData(row: list, no_cache: bool = False):
+        return User(row[0], bool(row[1]), bool(row[2]), row[3], no_cache=no_cache)
     
     @staticmethod
-    def Get(chat_id):
+    def Get(chat_id, no_cache: bool = False):
         if chat_id in User.Instances:
             User.Instances[chat_id].last_interaction = tz_today()
             return User.Instances[chat_id]
@@ -53,8 +53,8 @@ class User:
             
         row = User.Database().get(chat_id)
         if row:
-            return User.ExtractQueryData(row)
-        return User(chat_id=chat_id).save()
+            return User.ExtractQueryData(row, no_cache=no_cache)
+        return User(chat_id=chat_id, no_cache=no_cache).save()
     
     @staticmethod
     def Everybody():
@@ -68,7 +68,7 @@ class User:
         self.Database().update(self)
         return self
 
-    def __init__(self, chat_id, is_intervaller: bool = False, is_changer: bool=False, language: str='fa') -> None:
+    def __init__(self, chat_id, is_intervaller: bool = False, is_changer: bool=False, language: str='fa', no_cache: bool = False) -> None:
         self.is_admin: bool = False
         self.chat_id: int = chat_id
         self.last_interaction: datetime = tz_today()
@@ -77,7 +77,9 @@ class User:
         self.is_changer = is_changer
         self.is_intervaller = is_intervaller
         self.language: str = language
-        User.Instances[chat_id] = self
+        self.previous_message_id = None
+        if not no_cache:
+            User.Instances[chat_id] = self
 
     def change_state(self, state: UserStates = UserStates.NONE, data: any = None):
         self.state = state
