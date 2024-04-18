@@ -10,7 +10,7 @@ from tools.exceptions import *
 from flask import Flask, request, jsonify
 from payagraph.tools import ParallelJob
 from api.api_async import Request, Response
-
+import asyncio
 
 
 class TelegramBotCore:
@@ -63,6 +63,13 @@ class TelegramBotCore:
         res = await req.post()
         return res.value
 
+    async def get_updates(self, offset_id: int=None):
+        url = f"{self.bot_api_url}/getUpdates"
+        if offset_id:
+            url += f"?offset={offset_id}"
+        req = Request(url)
+        res = await req.get()
+        return res.value
 
 class TelegramBot(TelegramBotCore):
     '''More Customizable and smart part of the TelegramBot; This object will allow to add handlers that are used by TelegramBotCore.handle function and
@@ -84,6 +91,7 @@ class TelegramBot(TelegramBotCore):
         ### Flask App configs ###
         self.app: Flask = Flask(__name__)
 
+        
     def main_keyboard(self, user: User = None) -> Keyboard:
         '''Get the keyboard that must be shown in most cases and on Start screen.'''
         if isinstance(self._main_keyboard, Keyboard):
@@ -101,8 +109,32 @@ class TelegramBot(TelegramBotCore):
             res = await self.handle(request.json)
             return jsonify({'status': 'ok'})
 
-    def go(self, debug=True):
-        self.app.run(debug=debug)
+    async def handle_updates(self):
+        update_id = None
+        while True:
+            try:
+                updates = await self.get_updates(update_id)
+                print(updates)
+                if 'result' in updates:
+                    result = updates['result']
+                    for message in result:
+                        try:
+                            response = await self.handle(message)
+                            update_id = message['update_id'] + 1
+                        except Exception as ex:
+                            print(update_id, ex)
+                await asyncio.sleep(0.1)
+            except Exception as ex:
+                print(ex)
+    def start_polling(self):
+        event_loop = asyncio.get_event_loop()
+        event_loop.run_until_complete(self.handle_updates())
+        
+    def go(self, polling: bool=False, debug: bool=True):
+        if not polling:
+            self.app.run(debug=debug)
+            return
+        self.start_polling()
 
     def start_clock(self):
         '''Start the clock and handle(/run if needed) parallel jobs. As parallel jobs are optional, the clock is not running from start of the bot. it starts by direct demand of developer or user.'''
