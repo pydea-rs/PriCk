@@ -84,14 +84,14 @@ class TelegramBot(TelegramBotCore):
         ### Flask App configs ###
         self.app: Flask = Flask(__name__)
 
-    def main_keyboard(self, user_language: str = None) -> Keyboard:
+    def main_keyboard(self, user: User = None) -> Keyboard:
         '''Get the keyboard that must be shown in most cases and on Start screen.'''
         if isinstance(self._main_keyboard, Keyboard):
             return self._main_keyboard
         if isinstance(self._main_keyboard, dict):
-            if not user_language or user_language not in self._main_keyboard:
+            if not user.language or user.language not in self._main_keyboard:
                 return self._main_keyboard.values()[0]
-            return self._main_keyboard[user_language]
+            return self._main_keyboard[user.language]
         return None
 
     def config_webhook(self, webhook_path = '/'):
@@ -99,7 +99,6 @@ class TelegramBot(TelegramBotCore):
         @self.app.route(webhook_path, methods=['POST'])
         async def main():
             res = await self.handle(request.json)
-            print(res)
             return jsonify({'status': 'ok'})
 
     def go(self, debug=True):
@@ -114,14 +113,14 @@ class TelegramBot(TelegramBotCore):
         '''Stop bot clock and all parallel jobs.'''
         self.clock.stop()
 
-    def ticktock(self):
+    async def ticktock(self):
         '''Runs every 1 minutes, and checks if there's any parallel jobs and is it time to perform them by interval or not'''
         now = time() // 60
         print('tick tocked')
 
         for job in self.parallels:
             if (job.running) and (now - job.last_call_minutes >= job.interval):
-                job.do()
+                await job.do()
 
     def get_uptime(self) -> str:
         '''Bot being awake time, if the clock has not been stopped ofcourse'''
@@ -235,7 +234,7 @@ class TelegramBot(TelegramBotCore):
         telegram_method_response: dict|str|None = None
         if not response.replace_on_previous or ((keyboard) and not isinstance(keyboard, InlineKeyboard)):
             if not keyboard and not dont_use_main_keyboard:
-                keyboard = self.main_keyboard(user.language)
+                keyboard = self.main_keyboard(user)
             telegram_method_response = await self.send(message=response, keyboard=keyboard)
         else:
             telegram_method_response = await self.edit(message, keyboard)

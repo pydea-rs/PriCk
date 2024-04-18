@@ -19,8 +19,8 @@ class ParallelJob:
         self.running = True
         return self
 
-    def do(self):
-        self.last_run_result = self.function(*self.params)
+    async def do(self):
+        self.last_run_result = await self.function(*self.params)
         self.last_call_minutes = time() // 60
 
     def stop(self):

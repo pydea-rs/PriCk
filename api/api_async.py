@@ -67,7 +67,7 @@ class Request:
 
     async def post(self):
         async with aiohttp.ClientSession(trust_env=True, timeout=self.__timeout) as session:
-            async with session.post(self.url, json=self.__payload, headers=self.__headers) as response:
+            async with session.post(self.__url, json=self.__payload, headers=self.__headers) as response:
                 r = await Response(response).read()
                 return r
 

@@ -5,7 +5,6 @@ from tools.mathematix import tz_today
 from enum import Enum
 from tools.mathematix import tz_today
 
-
 ADMIN_USERNAME = config('ADMIN_USERNAME')
 ADMIN_PASSWORD = config('ADMIN_PASSWORD')
 
@@ -41,39 +40,44 @@ class User:
             del User.Instances[g]
 
     @staticmethod
+    def ExtractQueryData(row: list):
+        return User(row[0], bool(row[1]), bool(row[2]), row[3])
+    
+    @staticmethod
     def Get(chat_id):
         if chat_id in User.Instances:
             User.Instances[chat_id].last_interaction = tz_today()
             return User.Instances[chat_id]
         
-        User.GarbageCollect()
+        User.GarbageCollect()  # garbage collect other users
             
         row = User.Database().get(chat_id)
         if row:
-            '''load database and create User from that and'''
-            # return User(...)
+            return User.ExtractQueryData(row)
         return User(chat_id=chat_id).save()
+    
     @staticmethod
     def Everybody():
         return User.Database().get_all()
 
+    @staticmethod
+    def GetAll():
+        return [User.ExtractQueryData(user_row) for user_row in User.Database().load_everybody()]
+    
     def save(self):
         self.Database().update(self)
         return self
 
-    def __init__(self, chat_id, language: str='fa') -> None:
-        '''
-            @Param: manual_garbage_collect: if its false, this model will do garbage-collection by scheduler
-            if its true, its on the developer and it must be called on manualy (such as in Get method)
-            although its static, but it cant be changed on any user instance creation
-        '''
+    def __init__(self, chat_id, is_intervaller: bool = False, is_changer: bool=False, language: str='fa') -> None:
         self.is_admin: bool = False
         self.chat_id: int = chat_id
         self.last_interaction: datetime = tz_today()
         self.state: UserStates = None
         self.state_data: any = None
+        self.is_changer = is_changer
+        self.is_intervaller = is_intervaller
         self.language: str = language
-#        User.Instances[chat_id] = self  # no need to cache user data for now.
+        User.Instances[chat_id] = self
 
     def change_state(self, state: UserStates = UserStates.NONE, data: any = None):
         self.state = state

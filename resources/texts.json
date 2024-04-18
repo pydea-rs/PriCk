@@ -1,16 +1,44 @@
 {
     "keywords": {
-        "SubscribeChanges": {
+        "subscribe_changes": {
             "fa": "دنبال کردن تغییرات",
             "en": "Subscribe for Changes"
         },
-        "SubscribeByInterval": {
+        "unsubscribe_changes": {
+            "fa": "لغو درخواست تغییرات",
+            "en": "Unsubscribe for Changes"
+        },
+        "subscribe_by_interval": {
             "fa": "عضویت پیام دوره ای",
-            "en": "Subscribe For Schedule Messages"
+            "en": "Subscribe For Scheduled Messages"
+        },
+        "unsubscribe_by_interval": {
+            "fa": "لغو پیام دوره ای",
+            "en": "Unsubscribe For Scheduled Messages"
+        },
+        "change_language": {
+            "fa": "تغییر زبان به انگلیسی",
+            "en": "Change Language To Persian"
         }
     },
     "default_message": {
         "fa": "چه کاری از دستم بر میاد؟",
-        "em": "What can I do for you?"
+        "en": "What can I do for you?"
+    },
+    "subscribed_as_changer": {
+        "fa": "از این پس شما از تغییرات قیمت دلار در اسرع وقت مطلع خواهید شد.",
+        "en": "From now on, you will be notified the moment USD price has changed."
+    },
+    "subscribed_as_intervaller": {
+        "fa": "از این پس شما هر ۱۰ دقیقه از قیمت لحظه ای دلار با خبر می شوید.",
+        "en": "From now on, you will receive USD price every 10 minute."
+    },
+    "unsubscribed_as_changer": {
+        "fa": "اکانت شما با موفقیت از لیست دریافت کنندگان تغییرات دلار حذف شد.",
+        "en": "You've successfully unsubscribed from receiving USD changes."
+    },
+    "unsubscribed_as_intervaller": {
+        "fa": "اکانت شما با موفقیت از لیست زمان بندی ده دقیقه ای دریافت قیمت دلار حذف شد.",
+        "en": "You've successfully unsubscribed from receiving USD price every 10 minutes."
     }
 }
