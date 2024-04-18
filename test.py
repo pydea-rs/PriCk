@@ -1,14 +1,32 @@
-from flask import *
-from api.price_seek import PriceSeek
+import atexit
+import os
+import sched
+import threading
+import time
 
-usd_seeker = PriceSeek()
-app = Flask(__name__)
+def scheduled_task(scheduler):
+    print("This is a scheduled task.")
+    # Schedule the task to run again after 5 seconds
+    scheduler.enter(5, 1, scheduled_task, (scheduler,))
 
-@app.route('/', methods=['GET'])
-async def something():
-    '''Special route handler. optional. used for some special purposes, for example if your bot uses payment gateways, you must define payment callback route this way.'''
-    res = await usd_seeker.get_all()
-    return jsonify({'status': 'ok', 'data': res})
+def scheduler_thread():
+    scheduler = sched.scheduler(time.time, time.sleep)
+    scheduler.enter(0, 1, scheduled_task, (scheduler,))
+    scheduler.run()
 
-if __name__ == '__main__':
-    app.run(debug=True)
+def initialize_scheduler():
+    thread = threading.Thread(target=scheduler_thread)
+    thread.daemon = True
+    thread.start()
+
+# Run the scheduler when the WSGI script is loaded
+initialize_scheduler()
+
+# Ensure that the scheduler thread is stopped when the script exits
+def exit_handler():
+    print("Exiting the WSGI script.")
+    os._exit(0)  # Terminate the process forcefully
+
+atexit.register(exit_handler)
+
+print("done")

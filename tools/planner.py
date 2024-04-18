@@ -1,8 +1,9 @@
 import asyncio
-from time import time
+from time import time, sleep
 from typing import Callable
 from apscheduler.schedulers.background import BackgroundScheduler
 import asyncio
+# import schedule
 
 
 class Planner:
@@ -27,19 +28,19 @@ class Planner:
             self.started_at: int = time() // 60
             self.is_running = True
             print("Planner started.")
-            # asyncio.run(self.maintain_event_loop())
+            asyncio.run(self.maintain_event_loop())
 
     def stop(self):
         if self.is_running:
-            # self.scheduler.cancel()
-            self.scheduler.shutdown()
+            self.scheduler.cancel()
+            # self.scheduler.shutdown()
             self.is_running = False
             print("Planner stopped.")
 
     def _run_callback(self):
         # self.last_call_result = await self.callback()
         asyncio.run(self.callback())
-        # self.is_running = False
+
 
     def minutes_running(self) -> int:
         return (time() // 60) - self.started_at

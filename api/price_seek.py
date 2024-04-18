@@ -57,7 +57,8 @@ class PriceSeek:
         return result
     
     async def get(self) -> Dict[str, str|int|float]:
-        return await self.get_all()[0]
+        results = await self.get_all()
+        return results[0]
 
     async def list_currency_ids(self):
         '''Search though code and find all possible ids'''

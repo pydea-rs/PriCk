@@ -11,6 +11,8 @@ from tools.exceptions import *
 from api.price_seek import PriceSeek
 from typing import Dict
 from tools.mathematix import timestamp
+from flask_apscheduler import APScheduler
+from PriCKerBot import text_resources
 
 
 class PriCKerBot(TelegramBot):
@@ -110,8 +112,59 @@ BOT_USERNAME = config('BOT_USERNAME')
 
 # Read the text resource containing the multilanguage data for the bot texts, messages, commands and etc.
 # Also you can write your texts by hard coding but it will be hard implementing multilanguage texts that way,
-text_resources = manuwriter.load_json('texts', 'resources')
-
+# text_resources = manuwriter.load_json('texts', 'resources')
+text_resources = '''{
+    "keywords": {
+        "subscribe_changes": {
+            "fa": "دنبال کردن تغییرات",
+            "en": "Subscribe for Changes"
+        },
+        "unsubscribe_changes": {
+            "fa": "لغو درخواست تغییرات",
+            "en": "Unsubscribe for Changes"
+        },
+        "subscribe_by_interval": {
+            "fa": "عضویت پیام دوره ای",
+            "en": "Subscribe For Scheduled Messages"
+        },
+        "unsubscribe_by_interval": {
+            "fa": "لغو پیام دوره ای",
+            "en": "Unsubscribe For Scheduled Messages"
+        },
+        "change_language": {
+            "fa": "تغییر زبان به انگلیسی",
+            "en": "Change Language To Persian"
+        }
+    },
+    "default_message": {
+        "fa": "چه کاری از دستم بر میاد؟",
+        "en": "What can I do for you?"
+    },
+    "price_is": {
+        "fa": "قیمت لحظه ای دلار:‌ %s",
+        "en": "Instant USD Price: %s"
+    },
+    "subscribed_as_changer": {
+        "fa": "از این پس شما از تغییرات قیمت دلار در اسرع وقت مطلع خواهید شد.",
+        "en": "From now on, you will be notified the moment USD price has changed."
+    },
+    "subscribed_as_intervaller": {
+        "fa": "از این پس شما هر ۱۰ دقیقه از قیمت لحظه ای دلار با خبر می شوید.",
+        "en": "From now on, you will receive USD price every 10 minute."
+    },
+    "unsubscribed_as_changer": {
+        "fa": "اکانت شما با موفقیت از لیست دریافت کنندگان تغییرات دلار حذف شد.",
+        "en": "You've successfully unsubscribed from receiving USD changes."
+    },
+    "unsubscribed_as_intervaller": {
+        "fa": "اکانت شما با موفقیت از لیست زمان بندی ده دقیقه ای دریافت قیمت دلار حذف شد.",
+        "en": "You've successfully unsubscribed from receiving USD price every 10 minutes."
+    },
+    "follow_this_message": {
+        "en": "From now on, this message will be updated every 10 minutes with the latest USD price.",
+        "fa": "از این پس این پیام هر ده دقیقه با آخرین قیمت دلار به روز رسانی می شود."
+    }
+}'''
 def subscribe_changes_job(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
     bot.update_change_subscribers(user=message.by)
     message.by.save()
@@ -133,7 +186,7 @@ def send_whole_data(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMe
     user = message.by
     textmsg = bot.to_string(bot.current_prices)
     message = GenericMessage.Text(user.chat_id, textmsg)
-    return GenericMessage.Text(message.chat_id, bot.text(textmsg, message.by.language)), None
+    return GenericMessage.Text(message.chat_id, textmsg), None
 
 
 async def check_prices(bot: PriCKerBot):
@@ -179,22 +232,22 @@ job = bot.prepare_new_parallel_job(10, send_usd_price_job, bot)
 
 def fast_interval(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
     job.interval = 1
-    return GenericMessage.Text(message.chat_id, bot.text("Interval set on 1 minute.", message.by.language)), None
+    return GenericMessage.Text(message.chat_id, "Interval set on 1 minute."), None
 
 def normal_interval(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
     job.interval = 1
-    return GenericMessage.Text(message.chat_id, bot.text("Interval set on 10 minutes.", message.by.language)), None
+    return GenericMessage.Text(message.chat_id, "Interval set on 10 minutes."), None
 
 def hourly_interval(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
     job.interval = 60
-    return GenericMessage.Text(message.chat_id, bot.text("Interval set on 1 hour.", message.by.language)), None
+    return GenericMessage.Text(message.chat_id, "Interval set on 1 hour."), None
 
 bot.add_command_handler(command='fast', handler=fast_interval)
 bot.add_command_handler(command='normal', handler=normal_interval)
 bot.add_command_handler(command='hourly', handler=hourly_interval)
 
 bot.load_subscribers()
-bot.start_clock()  # optional, but mandatory if you defined at least one parallel job. also if you want to calculate bot uptime.
+# bot.start_clock()  # optional, but mandatory if you defined at least one parallel job. also if you want to calculate bot uptime.
 bot.config_webhook()  # automatically writes the webhook path route handler, so that users messages(requests), all be passed to bot.handle method
 
 @bot.app.route('/fire', methods=['GET'])
@@ -203,6 +256,14 @@ async def fire():
     prices = await bot.send_to_all()
     return jsonify({'status': 'ok', 'prices': prices})
 
+scheduler = APScheduler()
+
+@scheduler.task('interval', id='plan', seconds=10)
+def plan():
+    print("plan called.")
+    asyncio.run(bot.ticktock())
 
 if __name__ == '__main__':
+    scheduler.init_app(bot.app)
+    scheduler.start()
     bot.go(debug=False)
