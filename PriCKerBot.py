@@ -129,15 +129,12 @@ def change_language_handler(bot: PriCKerBot, message: GenericMessage) -> Union[G
     return GenericMessage.Text(message.chat_id, bot.text("default_message", message.by.language)), None
 
 
-bot = PriCKerBot(token=BOT_TOKEN, username=BOT_USERNAME, host_url=HOST_URL, text_resources=text_resources)
-bot.add_message_handler(message=bot.keyword('subscribe_changes'), handler=subscribe_changes_job)
-bot.add_message_handler(message=bot.keyword('unsubscribe_changes'), handler=subscribe_changes_job)
-bot.add_message_handler(message=bot.keyword('subscribe_by_interval'), handler=subscribe_by_interval_job)
-bot.add_message_handler(message=bot.keyword('unsubscribe_by_interval'), handler=subscribe_by_interval_job)
+def send_whole_data(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
+    user = message.by
+    textmsg = bot.to_string(bot.current_prices)
+    message = GenericMessage.Text(user.chat_id, textmsg)
+    return GenericMessage.Text(message.chat_id, bot.text(textmsg, message.by.language)), None
 
-bot.add_message_handler(message=bot.keyword('change_language'), handler=change_language_handler)
-
-bot.add_command_handler(command='uptime', handler=lambda bot, message: (GenericMessage.Text(message.by.chat_id, bot.get_uptime()), None))
 
 async def check_prices(bot: PriCKerBot):
     '''Job for retreiving prices everyminute, and notify changers if needed.'''
@@ -164,9 +161,37 @@ async def send_usd_price_job(bot: PriCKerBot):
 
     return bot.current_prices
 
+
+bot = PriCKerBot(token=BOT_TOKEN, username=BOT_USERNAME, host_url=HOST_URL, text_resources=text_resources)
+bot.add_message_handler(message=bot.keyword('subscribe_changes'), handler=subscribe_changes_job)
+bot.add_message_handler(message=bot.keyword('unsubscribe_changes'), handler=subscribe_changes_job)
+bot.add_message_handler(message=bot.keyword('subscribe_by_interval'), handler=subscribe_by_interval_job)
+bot.add_message_handler(message=bot.keyword('unsubscribe_by_interval'), handler=subscribe_by_interval_job)
+
+bot.add_message_handler(message=bot.keyword('change_language'), handler=change_language_handler)
+
+bot.add_command_handler(command='uptime', handler=lambda bot, message: (GenericMessage.Text(message.by.chat_id, bot.get_uptime()), None))
+bot.add_command_handler(command='data', handler=send_whole_data)
+
 job = bot.prepare_new_parallel_job(1, check_prices, bot)
 
-job = bot.prepare_new_parallel_job(1, send_usd_price_job, bot)
+job = bot.prepare_new_parallel_job(10, send_usd_price_job, bot)
+
+def fast_interval(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
+    job.interval = 1
+    return GenericMessage.Text(message.chat_id, bot.text("Interval set on 1 minute.", message.by.language)), None
+
+def normal_interval(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
+    job.interval = 1
+    return GenericMessage.Text(message.chat_id, bot.text("Interval set on 10 minutes.", message.by.language)), None
+
+def hourly_interval(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
+    job.interval = 60
+    return GenericMessage.Text(message.chat_id, bot.text("Interval set on 1 hour.", message.by.language)), None
+
+bot.add_command_handler(command='fast', handler=fast_interval)
+bot.add_command_handler(command='normal', handler=normal_interval)
+bot.add_command_handler(command='hourly', handler=hourly_interval)
 
 bot.load_subscribers()
 bot.start_clock()  # optional, but mandatory if you defined at least one parallel job. also if you want to calculate bot uptime.
