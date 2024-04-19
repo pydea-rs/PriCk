@@ -181,14 +181,17 @@ job = bot.prepare_new_parallel_job(10, send_usd_price_job, bot)
 
 def fast_interval(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
     job.interval = 1
+    message.by.previous_message_id = None
     return GenericMessage.Text(message.chat_id, "Interval set on 1 minute."), None
 
 def normal_interval(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
     job.interval = 1
+    message.by.previous_message_id = None
     return GenericMessage.Text(message.chat_id, "Interval set on 10 minutes."), None
 
 def hourly_interval(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMessage, Keyboard|InlineKeyboard]:
     job.interval = 60
+    message.by.previous_message_id = None
     return GenericMessage.Text(message.chat_id, "Interval set on 1 hour."), None
 
 bot.add_command_handler(command='fast', handler=fast_interval)
