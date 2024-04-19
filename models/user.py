@@ -66,6 +66,7 @@ class User:
     
     def save(self):
         self.Database().update(self)
+        self.previous_message_id = None
         return self
 
     def __init__(self, chat_id, is_intervaller: bool = False, is_changer: bool=False, language: str='fa', no_cache: bool = False) -> None:

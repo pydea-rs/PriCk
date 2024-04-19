@@ -77,7 +77,8 @@ class PriCKerBot(TelegramBot):
             user = User.Get(chat_id, no_cache=True)
             textmsg = (bot.text("price_is", user.language) % (bot.current_prices[0][user.language])) + "\n\n" + timestamp(user.language)
             await self.send(GenericMessage.Text(chat_id, textmsg))
-
+            user.previous_message_id = None
+            
     def main_keyboard(self, user: User = None) -> Keyboard:
         '''Get the keyboard that must be shown in most cases and on Start screen.'''
         return Keyboard(self.text_resources["keywords"][("un" if user.is_changer else "") + "subscribe_changes"][user.language],
@@ -133,7 +134,8 @@ def send_whole_data(bot: PriCKerBot, message: GenericMessage) -> Union[GenericMe
     user = message.by
     textmsg = bot.to_string(bot.current_prices)
     message = GenericMessage.Text(user.chat_id, textmsg)
-    return GenericMessage.Text(message.chat_id, bot.text(textmsg, message.by.language)), None
+    user.previous_message_id = None
+    return GenericMessage.Text(message.chat_id, textmsg), None
 
 
 async def check_prices(bot: PriCKerBot):

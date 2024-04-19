@@ -90,7 +90,7 @@ class TelegramBot(TelegramBotCore):
         self.clock = None
         ### Flask App configs ###
         self.app: Flask = Flask(__name__)
-
+        self.event_loop = None
         
     def main_keyboard(self, user: User = None) -> Keyboard:
         '''Get the keyboard that must be shown in most cases and on Start screen.'''
@@ -126,9 +126,10 @@ class TelegramBot(TelegramBotCore):
                 await asyncio.sleep(0.1)
             except Exception as ex:
                 print(ex)
+                
     def start_polling(self):
-        event_loop = asyncio.get_event_loop()
-        event_loop.run_until_complete(self.handle_updates())
+        self.event_loop = asyncio.get_event_loop()
+        self.event_loop.run_until_complete(self.handle_updates())
         
     def go(self, polling: bool=False, debug: bool=True):
         if not polling:
