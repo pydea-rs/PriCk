@@ -200,13 +200,6 @@ bot.add_command_handler(command='hourly', handler=hourly_interval)
 
 bot.load_subscribers()
 bot.start_clock()  # optional, but mandatory if you defined at least one parallel job. also if you want to calculate bot uptime.
-# bot.config_webhook()  # automatically writes the webhook path route handler, so that users messages(requests), all be passed to bot.handle method
-
-@bot.app.route('/fire', methods=['GET'])
-async def fire():
-    '''Bypass schedular and send prices to all subscribers'''
-    prices = await bot.send_to_all()
-    return jsonify({'status': 'ok', 'prices': prices})
 
 
 if __name__ == '__main__':

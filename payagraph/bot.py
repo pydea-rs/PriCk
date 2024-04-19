@@ -88,8 +88,6 @@ class TelegramBot(TelegramBotCore):
         # these handler will be checked when running bot.handle
         self.parallels: list[ParallelJob] = []
         self.clock = None
-        ### Flask App configs ###
-        self.app: Flask = Flask(__name__)
         self.event_loop = None
         
     def main_keyboard(self, user: User = None) -> Keyboard:
@@ -101,13 +99,6 @@ class TelegramBot(TelegramBotCore):
                 return self._main_keyboard.values()[0]
             return self._main_keyboard[user.language]
         return None
-
-    def config_webhook(self, webhook_path = '/'):
-        # **Telegram hook route**
-        @self.app.route(webhook_path, methods=['POST'])
-        async def main():
-            res = await self.handle(request.json)
-            return jsonify({'status': 'ok'})
 
     async def handle_updates(self):
         update_id = None
@@ -132,9 +123,6 @@ class TelegramBot(TelegramBotCore):
         self.event_loop.run_until_complete(self.handle_updates())
         
     def go(self, polling: bool=False, debug: bool=True):
-        if not polling:
-            self.app.run(debug=debug)
-            return
         self.start_polling()
 
     def start_clock(self):
