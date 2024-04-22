@@ -13,26 +13,28 @@ class PriceSeek:
     def extract_price(self, html: str) -> List[Dict[str, str|float|int]]:
         results = []
         for match in re.findall(self.price_pattern, html):
-            price_fa = match.replace(self.pattern_left_hand, '').replace(self.pattern_right_hand, '')
+            price_fa = re.sub('<.*?>', '', match)
             price = price_fa.replace(self.digit_separator, '')
+            
             try:
                 price = float(persian_digits.fa_to_en(price))
             except:
                 pass
-            results.append({'fa': price_fa, 'value': price, 'en': f'{price:,}'})
+            results.append({'fa': price_fa, 'value': price, 'en': f'{price}'})
 
         return results
 
 
     @staticmethod
-    def GetPattern(price_key: str, parent_html_tag: str) -> str:
-        # TODO: GET A PATTERN THAT IS independent to tag type
-        left = f'<{parent_html_tag} id="{price_key}">'
-        right = f'</{parent_html_tag}>'
+    def GetPattern(price_key: str, parent_html_tag: str|None=None) -> str:
+        if not parent_html_tag:
+            left, right = f'<.*?id="{price_key}".*?>', '</.*?>'
+        else:
+            left, right = f'<{parent_html_tag}.*?id="{price_key}".*?>', f'</{parent_html_tag}>'
         return f'{left}.*?{right}', left, right
     
 
-    def __init__(self, price_key: str = 'usdmax', parent_html_tag: str = 'span', url: str = 'irarz.com', timeout: int = 5) -> None:
+    def __init__(self, price_key: str = 'usdmax', parent_html_tag: str = None, url: str = 'irarz.com', timeout: int = 5) -> None:
         self.digit_separator = ','
         self.parent_html_tag = parent_html_tag
         self.price_key = price_key
@@ -54,6 +56,7 @@ class PriceSeek:
         result = self.extract_price(html)
         if not result:
             raise ValueError('Can not get price(s).')
+        print(result)
         return result
     
     async def get(self) -> Dict[str, str|int|float]:
